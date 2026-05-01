@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Report — LCCA Studio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .table-box table th { text-align: center; border: 1px solid var(--border); padding: 0.75rem 1.25rem; font-size: 0.7rem; }
+        .table-box table td { text-align: center; border: 1px solid var(--border); padding: 1rem; }
+        .highlight-lcc { background: #f8fafc; font-weight: 800; border-left: 2px solid var(--border) !important; }
+        .sub-header { background: #1f2937; font-size: 0.65rem; color: #9ca3af; font-weight: 700; }
+        .val-a { color: #10b981; font-weight: 700; }
+        .val-b { color: #f59e0b; font-weight: 700; }
+        .metric-card { background: var(--sidebar); border: 1px solid var(--border); padding: 1.5rem; border-radius: var(--radius); text-align: center; }
+        .metric-card h4 { font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .metric-card .val { font-size: 2rem; font-weight: 800; color: #f3f4f6; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <div class="logo">
+            <i class="fa-solid fa-compass"></i>
+            <span>LCCA Studio</span>
+        </div>
+        <div style="flex: 1;">
+            <a href="#" class="sidebar-link active"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Audit Report</span></a>
+            <a href="/configure" class="sidebar-link"><i class="fa-solid fa-arrow-left"></i> <span>Adjust Inputs</span></a>
+        </div>
+        <div class="sidebar-footer">
+            <p style="font-weight: 700; color: white; margin-bottom: 0.25rem;">Audit Compliance</p>
+            Scenario: {{ analysis.params.scenario_id.upper() }} <br>
+            Methodology: {{ analysis.params.model_mode.capitalize() }}
+        </div>
+    </nav>
+
+    <main class="main">
+        <header>
+            <a href="/configure" style="text-decoration: none; color: var(--text-light); font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fa-solid fa-arrow-left-long"></i> BACK TO CONFIGURATION
+            </a>
+            <h1 style="font-size: 1.5rem; color: #ccff00;">Karachi Circular Railway (KCR) Permanent Way Material Optimization: LCCA Comparative Audit.</h1>
+            <p>Life Cycle Cost Analysis of Permanent Way Components: <strong>{{ analysis.opt_a_name }} vs {{ analysis.opt_b_name }}</strong></p>
+        </header>
+
+        <!-- Charts -->
+        <div class="grid" style="margin-top: 3rem;">
+            <div class="chart-box">
+                <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> Total Life Cycle Cost (Rs)</h3>
+                <div style="height: 300px;"><canvas id="lccChart"></canvas></div>
+            </div>
+            <div class="chart-box">
+                <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> True Annualized EAC (Rs/Yr)</h3>
+                <div style="height: 300px;"><canvas id="eacChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Analytical Table -->
+        <div class="table-box" style="margin-top: 3rem;">
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 1rem;"><i class="fa-solid fa-calculator"></i> Step-by-Step Financial Audit (Rs)</h3>
+                <span style="font-size: 0.7rem; color: var(--text-light);">Formula Verification: LCC = IC + NPV Maintenance + Discounted Replacements</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="background: #1a1d23; width: 100px;">Horizon</th>
+                        <th colspan="5" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1); border-bottom: 2px solid #f59e0b;">{{ analysis.opt_a_name.upper() }} BREAKDOWN</th>
+                        <th colspan="5" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1); border-bottom: 2px solid #3b82f6;">{{ analysis.opt_b_name.upper() }} BREAKDOWN</th>
+                        <th rowspan="2" style="background: var(--card);">Net Saving</th>
+                    </tr>
+                    <tr class="sub-header">
+                        <th>Initial (IC)</th>
+                        <th>NPV Maint.</th>
+                        <th>Replacement</th>
+                        <th class="highlight-lcc">Total LCC</th>
+                        <th>EAC</th>
+                        <th>Initial (IC)</th>
+                        <th>NPV Maint.</th>
+                        <th>Replacement</th>
+                        <th class="highlight-lcc">Total LCC</th>
+                        <th>EAC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_rows %}
+                    <tr>
+                        <td style="font-weight: 800; background: #131519;">{{ row.years }} Y</td>
+                        <td>{{ row.a_ic | pk_money }} Rs</td>
+                        <td style="color: #f59e0b;">{{ row.a_npv | pk_money }} Rs</td>
+                        <td style="color: #fbbf24;">{{ row.a_repl | pk_money }} Rs</td>
+                        <td class="highlight-lcc" style="color: #f59e0b; background: #1a1d23;">{{ (row.a_lcc) | pk_money }} Rs</td>
+                        <td style="color: #f59e0b; font-weight: 600;">{{ (row.a_eac) | pk_money }} Rs</td>
+                        
+                        <td>{{ row.b_ic | pk_money }} Rs</td>
+                        <td style="color: #3b82f6;">{{ row.b_npv | pk_money }} Rs</td>
+                        <td style="color: #60a5fa;">{{ row.b_repl | pk_money }} Rs</td>
+                        <td class="highlight-lcc" style="color: #3b82f6; background: #1a1d23;">{{ (row.b_lcc) | pk_money }} Rs</td>
+                        <td style="color: #3b82f6; font-weight: 600;">{{ (row.b_eac) | pk_money }} Rs</td>
+                        
+                        <td style="font-weight: 800; background: rgba(204, 255, 0, 0.05); color: #ccff00;">{{ ((row.b_lcc - row.a_lcc) | abs) | pk_money }} Rs</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Engineering KPIs -->
+        <div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 2rem;">
+            <div class="metric-card">
+                <h4>Discounted Payback Period</h4>
+                <div class="val" id="payback-kpi">Calculating...</div>
+                <p style="font-size:0.75rem; color:var(--text-light); margin-top:0.5rem;">Crossover Point LCC</p>
+            </div>
+            <div class="metric-card">
+                <h4>Sustainability Index</h4>
+                <div class="val" style="color: #ccff00;">Carbon Tracked</div>
+                <p style="font-size:0.75rem; color:var(--text-light); margin-top:0.5rem;">Crossover Embodiment</p>
+            </div>
+            <div class="metric-card">
+                <h4>Sensitivity Offset</h4>
+                <div class="val" style="color: #f59e0b;">{{ "%.1f"|format(analysis.params.sensitivity * 100) }}%</div>
+                <p style="font-size:0.75rem; color:var(--text-light); margin-top:0.5rem;">State Bank Rate Deviation</p>
+            </div>
+        </div>
+
+        <footer style="margin-top: 5rem; text-align: center; color: #94a3b8; font-size: 0.85rem;">
+            &reg; RailLCCA Analytics Pro &bull; Generated for KCR Track Rehabilitation
+        </footer>
+    </main>
+
+    <script>
+        const chartLcc = JSON.parse('{{ chart_lcc|safe }}');
+        const cfData = JSON.parse('{{ cash_flow|safe }}');
+        
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        Chart.defaults.color = "#64748b";
+
+        function pkMoneyJS(value) {
+            if (value === null || value === undefined) return "0";
+            let val = Math.round(Math.abs(value)).toString();
+            let sign = value < 0 ? "-" : "";
+            let s = val.split("").reverse().join("");
+            let groups = [];
+            groups.push(s.substring(0, 3));
+            s = s.substring(3);
+            while (s.length > 0) {
+                groups.push(s.substring(0, 2));
+                s = s.substring(2);
+            }
+            return sign + groups.join(",").split("").reverse().join("");
+        }
+
+        const tooltipPlugin = {
+            callbacks: {
+                label: function(context) {
+                    return context.dataset.label + ': ' + pkMoneyJS(context.raw) + ' Rs';
+                }
+            }
+        };
+
+        new Chart(document.getElementById('lccChart'), {
+            type: 'bar',
+            data: {
+                labels: chartLcc.labels,
+                datasets: [
+                    { label: '{{ analysis.opt_a_name }} LCC', data: chartLcc.a, backgroundColor: '#f59e0b', borderRadius: 4 },
+                    { label: '{{ analysis.opt_b_name }} LCC', data: chartLcc.b, backgroundColor: '#3b82f6', borderRadius: 4 }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                scales: { 
+                    y: { beginAtZero: true, title: { display: true, text: 'Total LCC (Rs)' }, ticks: { callback: pkMoneyJS } },
+                    x: { title: { display: true, text: 'Analysis Horizons' } }
+                },
+                plugins: { tooltip: tooltipPlugin }
+            }
+        });
+
+        new Chart(document.getElementById('eacChart'), {
+            type: 'bar',
+            data: {
+                labels: chartLcc.labels,
+                datasets: [
+                    { label: '{{ analysis.opt_a_name }} EAC', data: chartLcc.eac_a, backgroundColor: '#f59e0b', borderRadius: 4 },
+                    { label: '{{ analysis.opt_b_name }} EAC', data: chartLcc.eac_b, backgroundColor: '#3b82f6', borderRadius: 4 }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                scales: { 
+                    y: { beginAtZero: true, title: { display: true, text: 'EAC (Rs / Year)' }, ticks: { callback: pkMoneyJS } }
+                },
+                plugins: { tooltip: tooltipPlugin }
+            }
+        });
+
+        // Calculate Discounted Payback
+        let pb = "N/A";
+        let dr = {{ analysis.params.discount_rate }};
+        let accA_pb = cfData.a.repl[0];
+        let accB_pb = cfData.b.repl[0];
+        for(let i=1; i<cfData.labels.length; i++){
+            accA_pb += (cfData.a.maint[i] + cfData.a.repl[i]) / Math.pow(1 + dr, i);
+            accB_pb += (cfData.b.maint[i] + cfData.b.repl[i]) / Math.pow(1 + dr, i);
+            if(accA_pb > accB_pb && pb === "N/A" && cfData.b.repl[0] > cfData.a.repl[0]) pb = i + " Years";
+        }
+        document.getElementById('payback-kpi').innerText = pb;
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        }
+
+        // Initialize sidebar state
+        (function() {
+            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                document.getElementById('sidebar').classList.add('collapsed');
+            }
+        })();
+    </script>
+</body>
+</html>
