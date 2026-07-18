@@ -2,23 +2,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap');
 
 :root {
-    --primary: #ccff00; /* Cyber Lime */
-    --primary-soft: rgba(204, 255, 0, 0.1);
+    --primary: #7F1D1D; /* Maroon */
+    --primary-soft: rgba(127, 29, 29, 0.1);
+    --gold: #D4AF37; /* Gold */
+    --gold-soft: rgba(212, 175, 55, 0.1);
     --secondary: #94a3b8;
-    --wood: #f59e0b; /* Amber */
-    --wood-soft: rgba(245, 158, 11, 0.1);
-    --conc: #3b82f6; /* Steel Blue */
-    --conc-soft: rgba(59, 130, 246, 0.1);
-    --bg: #1a1d23; /* Deep Slate */
-    --card: #22262e;
-    --text: #e2e8f0;
+    --wood: #D4AF37; /* Gold for Wood/Option A */
+    --wood-soft: rgba(212, 175, 55, 0.1);
+    --conc: #7F1D1D; /* Maroon for Conc/Option B */
+    --conc-soft: rgba(127, 29, 29, 0.1);
+    --bg: #0B1120; /* Deep Midnight */
+    --card: #111827;
+    --text: #f3f4f6;
     --text-light: #94a3b8;
-    --sidebar: #131519;
+    --sidebar: #0B1120;
     --sidebar-text: #e5e7eb;
-    --sidebar-active: #1f2937;
-    --border: #374151;
-    --radius: 8px; /* Sharper edges for industrial feel */
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+    --sidebar-active: #1e293b;
+    --border: #1e293b;
+    --radius: 12px;
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
     --sidebar-width: 280px;
     --sidebar-collapsed-width: 80px;
 }
@@ -228,14 +230,14 @@ header p {
 
 .field input:focus {
     outline: none;
-    border-color: var(--primary);
-    background: #374151;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+    border-color: var(--gold);
+    background: #1f2937;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
 }
 
 .btn {
-    background: var(--primary);
-    color: #1a1d23;
+    background: linear-gradient(135deg, var(--maroon, #7F1D1D), #B91C1C);
+    color: white;
     padding: 1rem 2rem;
     border: none;
     border-radius: 8px;
@@ -249,7 +251,7 @@ header p {
 .btn:hover {
     filter: brightness(1.1);
     transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(204, 255, 0, 0.2);
+    box-shadow: 0 10px 15px -3px rgba(127, 29, 29, 0.4);
 }
 
 /* Stats */

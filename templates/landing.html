@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RailMetric Pro — NED University Infrastructure Optimizer</title>
+    <title>Railway LCCA Calculator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -12,8 +12,11 @@
         :root {
             --slate: #0F172A;
             --slate-light: #1E293B;
-            --steel-blue: #4682B4;
-            --accent: #38BDF8;
+            --maroon: #7F1D1D;
+            --maroon-bright: #B91C1C;
+            --gold: #D4AF37;
+            --gold-muted: #B45309;
+            --accent: #F59E0B; /* Gold/Amber Accent */
             --text-gray: #94A3B8;
             --sidebar-w: 350px;
         }
@@ -24,8 +27,8 @@
             background: var(--slate);
             color: #F8FAFC;
             font-family: 'Inter', 'Outfit', sans-serif;
-            overflow: hidden; /* Desktop Dashboard Look */
-            height: 100vh;
+            overflow-y: auto; /* Allow scrolling */
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
@@ -41,97 +44,135 @@
             z-index: 100;
         }
 
-        .header-left { display: flex; align-items: center; gap: 1.5rem; }
-        .header-left img { height: 50px; }
-        .header-info { border-left: 1px solid rgba(255,255,255,0.1); padding-left: 1rem; }
-        .header-info h4 { font-size: 0.8rem; letter-spacing: 0.1em; color: var(--accent); }
-        .header-info p { font-size: 0.65rem; color: var(--text-gray); }
+        .header-left { display: flex; align-items: center; gap: 2rem; }
+        .logo-stack { display: flex; align-items: center; gap: 1rem; }
+        .logo-stack img { height: 60px; filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.2)); }
+        .header-info { border-left: 2px solid var(--maroon); padding-left: 1.5rem; }
+        .header-info h4 { font-size: 0.9rem; letter-spacing: 0.1em; color: var(--gold); font-weight: 800; }
+        .header-info p { font-size: 0.7rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; }
 
         .app-brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: white; }
-        .app-brand i { font-size: 1.5rem; color: var(--accent); }
-        .app-brand span { font-weight: 900; letter-spacing: -0.02em; font-size: 1.25rem; }
+        .app-brand i { font-size: 1.8rem; color: var(--accent); }
+        .app-brand span { font-weight: 900; letter-spacing: -0.02em; font-size: 1.5rem; }
+        .app-brand span b { color: var(--accent); }
 
         /* Main Layout */
         .dashboard-container {
             flex: 1;
             display: flex;
-            overflow-x: auto; /* Horizontal Scroll for Sections */
-            overflow-y: hidden;
+            flex-direction: column; /* Vertical alignment requested */
+            overflow-y: auto;
+            overflow-x: hidden;
             background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('/static/bg.png');
             background-size: cover;
-            padding: 2rem;
-            gap: 2rem;
-            scroll-snap-type: x mandatory;
+            background-attachment: fixed;
+            padding: 4rem 2rem;
+            gap: 4rem;
+            align-items: center;
+            scroll-behavior: smooth;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
         }
 
         .dash-section {
-            min-width: 450px;
-            max-width: 500px;
+            width: 100%;
+            max-width: 1000px;
             background: rgba(30, 41, 59, 0.5);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.05);
             border-radius: 24px;
-            padding: 2.5rem;
+            padding: 3rem;
             display: flex;
             flex-direction: column;
-            scroll-snap-align: start;
             transition: 0.4s;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .dash-section:nth-child(even) {
+            animation-delay: 1s;
+        }
+
+        .dash-section:nth-child(3) {
+            animation-delay: 2s;
         }
 
         .dash-section:hover {
             background: rgba(30, 41, 59, 0.7);
-            border-color: var(--accent);
-            transform: translateY(-5px);
+            border-color: var(--gold);
+            transform: translateY(-5px) scale(1.01);
+            animation-play-state: paused; /* Stop floating on hover for better interaction */
         }
 
         .dash-section h2 {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 900;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             line-height: 1.2;
             color: white;
+            text-align: center;
         }
 
         .dash-section h2 span { color: var(--accent); }
 
         .content-scroll {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         /* Hero / Identity Section */
         .hero-section {
-            min-width: 600px;
+            min-height: 60vh;
             background: none;
             border: none;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            align-items: center;
+            text-align: center;
+            animation: float 8s ease-in-out infinite; /* Floating hero too */
         }
 
         .hero-section h1 {
-            font-size: clamp(3rem, 6vw, 5rem);
+            font-size: clamp(3.5rem, 8vw, 6rem);
             font-weight: 900;
             line-height: 1;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
             letter-spacing: -0.04em;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .hero-section p {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             color: var(--text-gray);
-            margin-bottom: 3rem;
-            max-width: 500px;
+            margin-bottom: 3.5rem;
+            max-width: 700px;
+            line-height: 1.6;
         }
 
         /* Cards and Items */
         .info-card {
             background: rgba(15, 23, 42, 0.4);
-            padding: 1.5rem;
-            border-radius: 16px;
+            padding: 2rem;
+            border-radius: 20px;
             margin-bottom: 1rem;
             border: 1px solid rgba(255,255,255,0.03);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            background: rgba(127, 29, 29, 0.1);
+            border-color: var(--gold);
+            transform: translateX(10px);
         }
 
         .info-card i { color: var(--accent); font-size: 1.5rem; margin-bottom: 1rem; }
@@ -140,18 +181,28 @@
 
         .team-item {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding: 1rem;
+            text-align: center;
+            padding: 1.5rem;
             background: rgba(15, 23, 42, 0.3);
             border-radius: 12px;
             margin-bottom: 0.75rem;
+            gap: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.02);
+            transition: 0.3s;
         }
 
+        .team-item:hover {
+            background: rgba(212, 175, 55, 0.05);
+            border-color: var(--gold);
+        }
+
+        .team-item strong { font-size: 1.1rem; color: white; }
         .team-item span { font-size: 0.8rem; color: var(--accent); font-weight: 700; }
 
         .cta-btn {
-            background: var(--steel-blue);
+            background: linear-gradient(135deg, var(--maroon), var(--maroon-bright));
             color: white;
             padding: 1.25rem 3rem;
             border-radius: 12px;
@@ -162,9 +213,16 @@
             align-items: center;
             gap: 1rem;
             transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
-        .cta-btn:hover { background: var(--accent); transform: scale(1.05); }
+        .cta-btn:hover { 
+            background: linear-gradient(135deg, var(--gold-muted), var(--gold));
+            transform: translateY(-3px) scale(1.05); 
+            color: var(--slate);
+            box-shadow: 0 15px 30px rgba(245, 158, 11, 0.3);
+        }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -183,16 +241,10 @@
 </head>
 <body>
     <header class="top-header">
-        <div class="header-left">
-            <img src="/static/ned_ced_logo.png" alt="NEDUET Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/en/b/b3/NEDUET_logo.png'">
-            <div class="header-info">
-                <h4>NED UNIVERSITY OF ENGINEERING & TECHNOLOGY</h4>
-                <p>FACULTY OF CIVIL AND PETROLEUM ENGINEERING — DEPT. OF CIVIL ENGINEERING</p>
-            </div>
-        </div>
+
         <a href="/" class="app-brand">
-            <i class="fa-solid fa-compass-drafting"></i>
-            <span>RAILMETRIC <span style="color: var(--accent);">PRO</span></span>
+            <i class="fa-solid fa-train-subway"></i>
+            <span style="font-size: 1.2rem;">RAILWAY LCCA <b>CALCULATOR</b></span>
         </a>
         <div style="display: flex; gap: 1rem;">
             <a href="/configure" class="cta-btn" style="padding: 0.75rem 1.5rem; font-size: 0.9rem;">Analysis Engine</a>
@@ -202,11 +254,11 @@
     <main class="dashboard-container">
         <!-- Section 1: Hero Identity -->
         <section class="dash-section hero-section animate__animated animate__fadeInLeft">
-            <h1>RailMetric <span>Pro</span></h1>
-            <p>Integrated Life Cycle Cost Analysis & Infrastructure Optimization Engine. Designed for precision rail engineering and long-term fiscal auditing.</p>
-            <div style="display: flex; gap: 1.5rem;">
-                <a href="/configure" class="cta-btn">Execute Audit <i class="fa-solid fa-microchip"></i></a>
-                <div style="background: rgba(255,255,255,0.05); padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <h1>Railway LCCA <span>Calculator</span></h1>
+            <p>Integrated Life Cycle Cost Analysis & Infrastructure Optimization Engine. Designed for precision rail maintenance and long-term material replacement evaluation.</p>
+            <div style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center; width: 100%;">
+                <a href="/configure" class="cta-btn" style="width: 100%; max-width: 350px; justify-content: center;">Execute Analysis <i class="fa-solid fa-microchip"></i></a>
+                <div style="background: rgba(255,255,255,0.05); padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 350px;">
                     <span style="font-size: 0.7rem; color: var(--accent); font-weight: 700; text-transform: uppercase;">Service Period</span><br>
                     <span style="font-size: 1.2rem; font-weight: 900;">50-YEAR HORIZON</span>
                 </div>
@@ -220,17 +272,17 @@
                 <div class="info-card">
                     <i class="fa-solid fa-bridge-circle-check"></i>
                     <h3>Data-Driven Optimization</h3>
-                    <p>RailMetric Pro bridges the gap between structural rail engineering and economic sustainability, particularly for systems like the Karachi Circular Railway (KCR).</p>
+                    <p>Railway LCCA Calculator bridges the gap between structural rail engineering and economic sustainability, optimizing material selection for systems like the Karachi Circular Railway (KCR).</p>
                 </div>
                 <div class="info-card">
                     <i class="fa-solid fa-shield-halved"></i>
                     <h3>Automated LCCA Protocols</h3>
-                    <p>Replacing manual engineering spreadsheets with a real-time NPV (Net Present Value) and EAC (Equivalent Annual Cost) auditing engine.</p>
+                    <p>Replacing manual engineering spreadsheets with a real-time NPV (Net Present Value) and EAC (Equivalent Annual Cost) assessment engine.</p>
                 </div>
                 <div class="info-card">
                     <i class="fa-solid fa-coins"></i>
-                    <h3>Fiscal Responsibility</h3>
-                    <p>Projecting the long-term infrastructure viability to ensure public transit systems remain economically feasible over half a century.</p>
+                    <h3>Maintenance Cost Assessment</h3>
+                    <p>Projecting long-term maintenance cycles and material replacements to ensure the railway system remains economically feasible and structurally reliable over its operational lifespan.</p>
                 </div>
             </div>
         </section>
@@ -241,39 +293,23 @@
             <div class="content-scroll">
                 <div class="info-card">
                     <i class="fa-solid fa-layer-group"></i>
-                    <h3>Structural Sleepers</h3>
-                    <p>Engineering comparison of PSC vs. Hardwood Timber. Analysis includes density (1550 kg/m³ vs 800 kg/m³), flexural strength, and moisture resistance.</p>
+                    <h3>Sleeper Replacement Analysis</h3>
+                    <p>Evaluating Life Cycle Costs for PSC versus Hardwood Timber sleepers, focusing on expected maintenance frequency, degradation rates, and long-term material replacement schedules to determine the most optimal material.</p>
                 </div>
                 <div class="info-card">
                     <i class="fa-solid fa-link-slash"></i>
-                    <h3>Rail Continuity Systems</h3>
-                    <p>Technical auditing of CWR (Thermit Welding) vs. Jointed Track (Fishplates). Analyzing thermal stress management and frequency of joint failure.</p>
+                    <h3>Joint & Welding Maintenance</h3>
+                    <p>Calculating the economic impact of Continuous Welded Rail (CWR) against traditional Jointed Track. The assessment models thermal stress failures, required routine maintenance, and component rehabilitation costs over time.</p>
                 </div>
                 <div class="info-card">
                     <i class="fa-solid fa-mountain-sun"></i>
-                    <h3>Trackbed Stability</h3>
-                    <p>Volumetric analysis of Traditional Ballast Beds vs. Slab Track. Modeling sub-base subsidence and attrition rates in high-salinity urban zones.</p>
+                    <h3>Trackbed Rehabilitation</h3>
+                    <p>Comparing Traditional Ballast Beds to Slab Track systems by projecting long-term sub-base subsidence, ballast attrition rates, and the required operational downtime for comprehensive trackbed rehabilitation.</p>
                 </div>
             </div>
         </section>
 
-        <!-- Section 4: Development Team -->
-        <section class="dash-section animate__animated animate__fadeInUp animate__delay-2s">
-            <h2><span>03.</span> Project Team</h2>
-            <p style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 2rem;">Bachelor of Civil Engineering (NEDUET) — Batch 2022-2026</p>
-            <div class="content-scroll">
-                <div class="team-item"><strong>Mustfeez ur Rehman</strong> <span>CE 22067</span></div>
-                <div class="team-item"><strong>Atta ur Rehman</strong> <span>CE 2270</span></div>
-                <div class="team-item"><strong>Alay Raza Rizvi</strong> <span>CE 22078</span></div>
-                <div class="team-item"><strong>Zainab Kidwai</strong> <span>CE 22099</span></div>
-                
-                <div style="margin-top: 2rem; padding: 1.5rem; background: var(--accent); color: var(--slate); border-radius: 16px; text-align: center;">
-                    <i class="fa-solid fa-award" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-                    <p style="font-weight: 900; font-size: 1rem;">DEPARTMENT OF CIVIL ENGINEERING</p>
-                    <p style="font-size: 0.8rem; opacity: 0.9;">Excellence in Structural Infrastructure</p>
-                </div>
-            </div>
-        </section>
+
     </main>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
