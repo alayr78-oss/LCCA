@@ -18,9 +18,9 @@
         .metric-card h4 { font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.05em; margin-bottom: 0.5rem; }
         .metric-card .val { font-size: 2rem; font-weight: 800; color: #f3f4f6; }
         .sidebar.collapsed .sidebar-heading { display: none; }
-        .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem; }
+        .charts-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 2rem; margin-top: 3rem; }
         @media (max-width: 768px) {
-            .charts-container { gap: 0.5rem; }
+            .charts-container { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
             .charts-container .chart-box { padding: 1rem 0.5rem; }
             .charts-container .card-title { font-size: 0.75rem; text-align: center; justify-content: center; }
             .charts-container canvas { height: 200px !important; }
@@ -189,23 +189,23 @@
 
         function pkMoneyJS(value) {
             if (value === null || value === undefined) return "0";
-            let val = Math.round(Math.abs(value)).toString();
-            let sign = value < 0 ? "-" : "";
-            let s = val.split("").reverse().join("");
-            let groups = [];
-            groups.push(s.substring(0, 3));
-            s = s.substring(3);
-            while (s.length > 0) {
-                groups.push(s.substring(0, 2));
-                s = s.substring(2);
+            let val = parseFloat(value);
+            if (val === 0) return "0";
+            let sign = val < 0 ? "-" : "";
+            val = Math.abs(val);
+            if (val >= 10000000) {
+                return sign + (val / 10000000).toFixed(2) + " Cr PKR";
+            } else if (val >= 100000) {
+                return sign + (val / 100000).toFixed(2) + " L PKR";
+            } else {
+                return sign + val.toLocaleString('en-IN') + " PKR";
             }
-            return sign + groups.join(",").split("").reverse().join("");
         }
 
         const tooltipPlugin = {
             callbacks: {
                 label: function(context) {
-                    return context.dataset.label + ': ' + pkMoneyJS(context.raw) + ' Rs';
+                    return context.dataset.label + ': ' + pkMoneyJS(context.raw);
                 }
             }
         };
