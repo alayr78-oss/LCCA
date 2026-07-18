@@ -20,14 +20,25 @@
         .sidebar.collapsed .sidebar-heading { display: none; }
         .charts-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 2rem; margin-top: 3rem; }
         @media (max-width: 768px) {
-            .charts-container { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-            .charts-container .chart-box { padding: 1rem 0.5rem; }
-            .charts-container .card-title { font-size: 0.75rem; text-align: center; justify-content: center; }
-            .charts-container canvas { height: 200px !important; }
-            .table-box { border: none; padding: 0; background: transparent; }
-            .table-box table th { padding: 0.5rem 0.2rem; font-size: 0.55rem; }
-            .table-box table td { padding: 0.5rem 0.2rem; font-size: 0.65rem; white-space: normal; word-break: break-word; }
-            .hide-mobile { display: none; }
+            .charts-container { grid-template-columns: 1fr; gap: 2rem; }
+            .charts-container .chart-box { padding: 1.5rem; }
+            .charts-container .card-title { font-size: 1rem; text-align: left; justify-content: flex-start; }
+            .charts-container canvas { height: 250px !important; }
+            
+            .table-box table, .table-box thead, .table-box tbody, .table-box th, .table-box td, .table-box tr { display: block; }
+            .table-box thead { display: none; }
+            .table-box tr { margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 8px; background: #0F172A; }
+            .table-box td { 
+                border: none; border-bottom: 1px solid var(--border); 
+                position: relative; padding: 1rem 1rem 1rem 50% !important; 
+                text-align: right !important; font-size: 0.85rem !important; 
+            }
+            .table-box td:before { 
+                position: absolute; top: 1rem; left: 1rem; width: 45%; 
+                text-align: left; font-weight: 700; color: #9ca3af; 
+                content: attr(data-label); 
+            }
+            .table-box td:last-child { border-bottom: none; }
         }
     </style>
 </head>
@@ -120,14 +131,14 @@
                         <th rowspan="2" style="background: var(--card);">Net Saving</th>
                     </tr>
                     <tr class="sub-header">
-                        <th class="hide-mobile">Initial (IC)</th>
-                        <th class="hide-mobile">NPV Maint.</th>
-                        <th class="hide-mobile">Replacement</th>
+                        <th>Initial (IC)</th>
+                        <th>NPV Maint.</th>
+                        <th>Replacement</th>
                         <th class="highlight-lcc">Total LCC</th>
                         <th>EAC</th>
-                        <th class="hide-mobile">Initial (IC)</th>
-                        <th class="hide-mobile">NPV Maint.</th>
-                        <th class="hide-mobile">Replacement</th>
+                        <th>Initial (IC)</th>
+                        <th>NPV Maint.</th>
+                        <th>Replacement</th>
                         <th class="highlight-lcc">Total LCC</th>
                         <th>EAC</th>
                     </tr>
@@ -135,20 +146,20 @@
                 <tbody>
                     {% for row in table_rows %}
                     <tr>
-                        <td style="font-weight: 800; background: #0B1120;">{{ row.years }} Y</td>
-                        <td class="hide-mobile">{{ row.a_ic | pk_money }} Rs</td>
-                        <td class="hide-mobile" style="color: var(--gold);">{{ row.a_npv | pk_money }} Rs</td>
-                        <td class="hide-mobile" style="color: var(--gold);">{{ row.a_repl | pk_money }} Rs</td>
-                        <td class="highlight-lcc" style="color: var(--gold); background: #0B1120;">{{ (row.a_lcc) | pk_money }} Rs</td>
-                        <td style="color: var(--gold); font-weight: 600;">{{ (row.a_eac) | pk_money }} Rs</td>
+                        <td data-label="Horizon" style="font-weight: 800; background: #0B1120; text-align: center !important; padding-left: 1rem !important;">{{ row.years }} Y</td>
+                        <td data-label="{{ analysis.opt_a_name }} IC">{{ row.a_ic | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_a_name }} NPV Maint." style="color: var(--gold);">{{ row.a_npv | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_a_name }} Replacement" style="color: var(--gold);">{{ row.a_repl | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_a_name }} Total LCC" class="highlight-lcc" style="color: var(--gold); background: #0B1120;">{{ (row.a_lcc) | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_a_name }} EAC" style="color: var(--gold); font-weight: 600;">{{ (row.a_eac) | pk_money }} Rs</td>
                         
-                        <td class="hide-mobile">{{ row.b_ic | pk_money }} Rs</td>
-                        <td class="hide-mobile" style="color: #60a5fa;">{{ row.b_npv | pk_money }} Rs</td>
-                        <td class="hide-mobile" style="color: #60a5fa;">{{ row.b_repl | pk_money }} Rs</td>
-                        <td class="highlight-lcc" style="color: #60a5fa; background: #0B1120;">{{ (row.b_lcc) | pk_money }} Rs</td>
-                        <td style="color: #60a5fa; font-weight: 600;">{{ (row.b_eac) | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_b_name }} IC">{{ row.b_ic | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_b_name }} NPV Maint." style="color: #60a5fa;">{{ row.b_npv | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_b_name }} Replacement" style="color: #60a5fa;">{{ row.b_repl | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_b_name }} Total LCC" class="highlight-lcc" style="color: #60a5fa; background: #0B1120;">{{ (row.b_lcc) | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_b_name }} EAC" style="color: #60a5fa; font-weight: 600;">{{ (row.b_eac) | pk_money }} Rs</td>
                         
-                        <td style="font-weight: 800; background: rgba(212, 175, 55, 0.05); color: var(--gold);">{{ ((row.b_lcc - row.a_lcc) | abs) | pk_money }} Rs</td>
+                        <td data-label="Net Saving" style="font-weight: 800; background: rgba(212, 175, 55, 0.05); color: var(--gold);">{{ ((row.b_lcc - row.a_lcc) | abs) | pk_money }} Rs</td>
                     </tr>
                     {% endfor %}
                 </tbody>
