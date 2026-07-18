@@ -146,7 +146,7 @@
 
         <!-- LCCA Calculation Outputs -->
         {% set last_row = table_rows[-1] %}
-        <div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 2rem;">
+        <div class="stats" style="margin-top: 2rem;">
             <div class="metric-card">
                 <h4>Initial Cost Difference</h4>
                 <div class="val" style="color: #60a5fa;">{{ (last_row.b_ic - last_row.a_ic) | abs | pk_money }} Rs</div>
