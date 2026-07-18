@@ -18,6 +18,17 @@
         .metric-card h4 { font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.05em; margin-bottom: 0.5rem; }
         .metric-card .val { font-size: 2rem; font-weight: 800; color: #f3f4f6; }
         .sidebar.collapsed .sidebar-heading { display: none; }
+        .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem; }
+        @media (max-width: 768px) {
+            .charts-container { gap: 0.5rem; }
+            .charts-container .chart-box { padding: 1rem 0.5rem; }
+            .charts-container .card-title { font-size: 0.75rem; text-align: center; justify-content: center; }
+            .charts-container canvas { height: 200px !important; }
+            .table-box { border: none; padding: 0; background: transparent; }
+            .table-box table th { padding: 0.5rem 0.2rem; font-size: 0.55rem; }
+            .table-box table td { padding: 0.5rem 0.2rem; font-size: 0.65rem; white-space: normal; word-break: break-word; }
+            .hide-mobile { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -83,13 +94,13 @@
         </header>
 
         <!-- Charts -->
-        <div class="grid" style="margin-top: 3rem;">
+        <div class="charts-container">
             <div class="chart-box">
-                <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> Total Life Cycle Cost (Rs)</h3>
+                <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> Total LCC</h3>
                 <div style="height: 300px;"><canvas id="lccChart"></canvas></div>
             </div>
             <div class="chart-box">
-                <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> True Annualized EAC (Rs/Yr)</h3>
+                <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> True EAC</h3>
                 <div style="height: 300px;"><canvas id="eacChart"></canvas></div>
             </div>
         </div>
@@ -109,14 +120,14 @@
                         <th rowspan="2" style="background: var(--card);">Net Saving</th>
                     </tr>
                     <tr class="sub-header">
-                        <th>Initial (IC)</th>
-                        <th>NPV Maint.</th>
-                        <th>Replacement</th>
+                        <th class="hide-mobile">Initial (IC)</th>
+                        <th class="hide-mobile">NPV Maint.</th>
+                        <th class="hide-mobile">Replacement</th>
                         <th class="highlight-lcc">Total LCC</th>
                         <th>EAC</th>
-                        <th>Initial (IC)</th>
-                        <th>NPV Maint.</th>
-                        <th>Replacement</th>
+                        <th class="hide-mobile">Initial (IC)</th>
+                        <th class="hide-mobile">NPV Maint.</th>
+                        <th class="hide-mobile">Replacement</th>
                         <th class="highlight-lcc">Total LCC</th>
                         <th>EAC</th>
                     </tr>
@@ -125,15 +136,15 @@
                     {% for row in table_rows %}
                     <tr>
                         <td style="font-weight: 800; background: #0B1120;">{{ row.years }} Y</td>
-                        <td>{{ row.a_ic | pk_money }} Rs</td>
-                        <td style="color: var(--gold);">{{ row.a_npv | pk_money }} Rs</td>
-                        <td style="color: var(--gold);">{{ row.a_repl | pk_money }} Rs</td>
+                        <td class="hide-mobile">{{ row.a_ic | pk_money }} Rs</td>
+                        <td class="hide-mobile" style="color: var(--gold);">{{ row.a_npv | pk_money }} Rs</td>
+                        <td class="hide-mobile" style="color: var(--gold);">{{ row.a_repl | pk_money }} Rs</td>
                         <td class="highlight-lcc" style="color: var(--gold); background: #0B1120;">{{ (row.a_lcc) | pk_money }} Rs</td>
                         <td style="color: var(--gold); font-weight: 600;">{{ (row.a_eac) | pk_money }} Rs</td>
                         
-                        <td>{{ row.b_ic | pk_money }} Rs</td>
-                        <td style="color: #60a5fa;">{{ row.b_npv | pk_money }} Rs</td>
-                        <td style="color: #60a5fa;">{{ row.b_repl | pk_money }} Rs</td>
+                        <td class="hide-mobile">{{ row.b_ic | pk_money }} Rs</td>
+                        <td class="hide-mobile" style="color: #60a5fa;">{{ row.b_npv | pk_money }} Rs</td>
+                        <td class="hide-mobile" style="color: #60a5fa;">{{ row.b_repl | pk_money }} Rs</td>
                         <td class="highlight-lcc" style="color: #60a5fa; background: #0B1120;">{{ (row.b_lcc) | pk_money }} Rs</td>
                         <td style="color: #60a5fa; font-weight: 600;">{{ (row.b_eac) | pk_money }} Rs</td>
                         
