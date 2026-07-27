@@ -52,20 +52,20 @@ const ResearchMode = () => {
                     <h5>Condition & Deterioration</h5>
                     <ul style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', paddingLeft: '20px' }}>
                         <li><strong>Component Condition Index (CCI):</strong> Weighted aggregation of defect severity and deduct values.</li>
-                        <li><strong>Infrastructure Condition Index (ICI):</strong> \(\sum (CCI_i \times Weight_i)\)</li>
-                        <li><strong>Linear Deterioration:</strong> \(C(t) = C_0 - (R \times t)\)</li>
-                        <li><strong>Exponential Deterioration:</strong> \(C(t) = C_0 \times e^{-k \times t}\)</li>
-                        <li><strong>Remaining Service Life (RSL):</strong> Time (t) until \(C(t) \le Threshold\)</li>
+                        <li><strong>Infrastructure Condition Index (ICI):</strong> {"\\(\\sum (CCI_i \\times Weight_i)\\)"}</li>
+                        <li><strong>Linear Deterioration:</strong> {"\\(C(t) = C_0 - (R \\times t)\\)"}</li>
+                        <li><strong>Exponential Deterioration:</strong> {"\\(C(t) = C_0 \\times e^{-k \\times t}\\)"}</li>
+                        <li><strong>Remaining Service Life (RSL):</strong> Time (t) until {"\\(C(t) \\le Threshold\\)"}</li>
                     </ul>
                 </div>
                 
                 <div>
                     <h5>Lifecycle Cost Analysis (LCCA)</h5>
                     <ul style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', paddingLeft: '20px' }}>
-                        <li><strong>Net Present Value (NPV):</strong> \(\sum_{t=0}^{N} \frac{Cost_t}{(1 + r)^t}\)</li>
-                        <li><strong>Equivalent Annual Cost (EAC):</strong> \(NPV \times \frac{r(1+r)^N}{(1+r)^N - 1}\)</li>
-                        <li><strong>Risk Assessment:</strong> Risk = Probability of Failure \(\times\) Consequence</li>
-                        <li><strong>MCDM (SAW):</strong> \(Score_j = \sum_{i=1}^{n} w_i \times x_{ij}\)</li>
+                        <li><strong>Net Present Value (NPV):</strong> {"\\(\\sum_{t=0}^{N} \\frac{Cost_t}{(1 + r)^t}\\)"}</li>
+                        <li><strong>Equivalent Annual Cost (EAC):</strong> {"\\(NPV \\times \\frac{r(1+r)^N}{(1+r)^N - 1}\\)"}</li>
+                        <li><strong>Risk Assessment:</strong> Risk = Probability of Failure {"\\(\\times\\)"} Consequence</li>
+                        <li><strong>MCDM (SAW):</strong> {"\\(Score_j = \\sum_{i=1}^{n} w_i \\times x_{ij}\\)"}</li>
                     </ul>
                 </div>
             </div>
