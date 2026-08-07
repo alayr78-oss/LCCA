@@ -37,3 +37,49 @@ def validate_project_payload(data):
         return False, "Discount rate must be a valid number.", "discount_rate"
 
     return True, None, None
+
+def validate_asset_payload(data):
+    if not data:
+        return False, "Empty payload received.", "payload"
+    
+    project_id = data.get('project_id')
+    if not project_id:
+        return False, "Project ID is required.", "project_id"
+
+    try:
+        start_km = float(data.get('location_start_km', 0))
+        end_km = float(data.get('location_end_km', 0))
+        if start_km < 0 or end_km < 0:
+            return False, "Chainage must be non-negative.", "location_start_km"
+        if start_km >= end_km:
+            return False, "Start chainage must be less than end chainage.", "location_start_km"
+    except (ValueError, TypeError):
+        return False, "Chainage must be valid numbers.", "location_start_km"
+        
+    try:
+        year = int(data.get('install_year', 0))
+        if year < 1800 or year > 2100:
+            return False, "Install year must be realistic.", "install_year"
+    except (ValueError, TypeError):
+        return False, "Install year must be a valid year.", "install_year"
+
+    return True, None, None
+
+def validate_inspection_payload(data):
+    if not data:
+        return False, "Empty payload received.", "payload"
+        
+    if not data.get('asset_id'):
+        return False, "Asset ID is required.", "asset_id"
+        
+    if not data.get('inspector') or not str(data.get('inspector')).strip():
+        return False, "Inspector name is required.", "inspector"
+        
+    try:
+        rating = float(data.get('condition_rating', 0))
+        if rating < 0 or rating > 100:
+            return False, "Condition rating must be between 0 and 100.", "condition_rating"
+    except (ValueError, TypeError):
+        return False, "Condition rating must be a valid number.", "condition_rating"
+
+    return True, None, None

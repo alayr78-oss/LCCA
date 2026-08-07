@@ -15,7 +15,7 @@ def get_users(): return generic_get_all(User)
 
 import logging
 from sqlalchemy.exc import IntegrityError, OperationalError
-from validators import validate_project_payload
+from validators import validate_project_payload, validate_asset_payload, validate_inspection_payload
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -95,11 +95,31 @@ def get_assets(): return generic_get_all(Asset)
 
 @api.route('/assets', methods=['POST'])
 def create_asset():
-    data = request.json
-    a = Asset(**{k: v for k, v in data.items() if hasattr(Asset, k)})
-    db.session.add(a)
-    db.session.commit()
-    return jsonify({"id": a.id}), 201
+    try:
+        data = request.json
+        logger.info(f"Endpoint /api/assets hit. Action: Create Asset. Payload: {data}")
+        
+        is_valid, err_msg, err_field = validate_asset_payload(data)
+        if not is_valid:
+            return jsonify({"success": False, "error": err_msg, "field": err_field, "status": 400}), 400
+
+        a = Asset(**{k: v for k, v in data.items() if hasattr(Asset, k)})
+        db.session.add(a)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Asset created successfully.", "id": a.id}), 201
+        
+    except IntegrityError as e:
+        db.session.rollback()
+        logger.error(f"IntegrityError on Asset: {str(e)}")
+        return jsonify({"success": False, "error": "Database integrity error. Check if the project or component exists.", "status": 400}), 400
+    except OperationalError as e:
+        db.session.rollback()
+        logger.error(f"OperationalError on Asset: {str(e)}")
+        return jsonify({"success": False, "error": "Database operational error. The schema might be out of sync. Please reset the database.", "status": 500}), 500
+    except Exception as e:
+        db.session.rollback()
+        logger.exception(f"Exception on Asset: {str(e)}")
+        return jsonify({"success": False, "error": "Unexpected server error.", "status": 500}), 500
 
 # --- Components ---
 @api.route('/components', methods=['GET'])
@@ -119,6 +139,38 @@ def get_knowledge(): return generic_get_all(KnowledgeParameter)
 # --- History ---
 @api.route('/inspections', methods=['GET'])
 def get_inspections(): return generic_get_all(InspectionHistory)
+
+@api.route('/inspections', methods=['POST'])
+def create_inspection():
+    try:
+        data = request.json
+        logger.info(f"Endpoint /api/inspections hit. Action: Log Inspection. Payload: {data}")
+        
+        is_valid, err_msg, err_field = validate_inspection_payload(data)
+        if not is_valid:
+            return jsonify({"success": False, "error": err_msg, "field": err_field, "status": 400}), 400
+
+        # Parse date if possible, otherwise rely on SQLAlchemy
+        from datetime import datetime
+        if 'inspection_date' in data and isinstance(data['inspection_date'], str):
+            try:
+                data['inspection_date'] = datetime.strptime(data['inspection_date'].split('T')[0], '%Y-%m-%d').date()
+            except ValueError:
+                pass # let SQLAlchemy try
+                
+        i = InspectionHistory(**{k: v for k, v in data.items() if hasattr(InspectionHistory, k)})
+        db.session.add(i)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Inspection logged successfully.", "id": i.id}), 201
+        
+    except IntegrityError as e:
+        db.session.rollback()
+        logger.error(f"IntegrityError on Inspection: {str(e)}")
+        return jsonify({"success": False, "error": "Database integrity error. Check if the asset exists.", "status": 400}), 400
+    except Exception as e:
+        db.session.rollback()
+        logger.exception(f"Exception on Inspection: {str(e)}")
+        return jsonify({"success": False, "error": "Unexpected server error.", "status": 500}), 500
 
 @api.route('/maintenance', methods=['GET'])
 def get_maintenance(): return generic_get_all(MaintenanceHistory)
@@ -320,3 +372,30 @@ def export_report():
         return send_file(io.BytesIO(pdf_data), mimetype='application/pdf', as_attachment=True, download_name='ram_dss_report.pdf')
     
     return jsonify({"error": "Unknown format"}), 400
+
+@api.route('/admin/seed_db', methods=['POST'])
+def seed_db():
+    try:
+        from models import db, Component, Material, CountryProfile
+        
+        # Seed Country
+        if not CountryProfile.query.first():
+            db.session.add(CountryProfile(country_name="Default", currency="USD"))
+            
+        # Seed Component
+        if not Component.query.first():
+            c1 = Component(id=1, name="Rails", description="Main rail tracks")
+            c2 = Component(id=2, name="Sleepers", description="Track sleepers")
+            db.session.add_all([c1, c2])
+            
+        # Seed Material
+        if not Material.query.first():
+            m1 = Material(id=1, name="Standard Steel", component_id=1, expected_life=50, initial_cost=1000)
+            db.session.add(m1)
+
+        db.session.commit()
+        return jsonify({"success": True, "message": "Database seeded successfully!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        logger.exception(f"Error seeding DB: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500

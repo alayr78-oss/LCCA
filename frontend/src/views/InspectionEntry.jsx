@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import { Database, Plus, CheckSquare } from 'lucide-react';
+import { Database, Plus, CheckSquare, AlertCircle } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 
 const InspectionEntry = () => {
@@ -43,22 +43,46 @@ const InspectionEntry = () => {
     } catch (err) { console.error(err); }
   };
 
+  const [errorDetails, setErrorDetails] = useState({ message: '' });
+
   const handleCreateAsset = async (e) => {
     e.preventDefault();
+    setErrorDetails({ message: '' });
+    
+    // Ensure numbers are properly formatted
+    const payload = {
+        ...assetForm,
+        project_id: activeProject.id,
+        location_start_km: assetForm.location_start_km ? parseFloat(assetForm.location_start_km) : null,
+        location_end_km: assetForm.location_end_km ? parseFloat(assetForm.location_end_km) : null,
+        install_year: assetForm.install_year ? parseInt(assetForm.install_year, 10) : null
+    };
+
     try {
-      await axios.post('/api/assets', { ...assetForm, project_id: activeProject.id });
+      await axios.post('/api/assets', payload);
       fetchAssets();
-      alert("Asset created");
-    } catch (err) { alert(err.response?.data?.error || "Error creating asset"); }
+      setAssetForm({ component_id: 1, location_start_km: 0, location_end_km: 1, install_year: 2020 });
+    } catch (err) { 
+        setErrorDetails({ message: err.response?.data?.error || "An unexpected error occurred while creating the asset." }); 
+    }
   };
 
   const handleCreateInspection = async (e) => {
     e.preventDefault();
+    setErrorDetails({ message: '' });
+    
+    const payload = {
+        ...inspectionForm,
+        asset_id: activeAsset.id,
+        condition_rating: inspectionForm.condition_rating ? parseFloat(inspectionForm.condition_rating) : null
+    };
+
     try {
-      await axios.post('/api/inspections', { ...inspectionForm, asset_id: activeAsset.id });
+      await axios.post('/api/inspections', payload);
       fetchInspections();
-      alert("Inspection logged");
-    } catch (err) { alert(err.response?.data?.error || "Error logging inspection"); }
+    } catch (err) { 
+        setErrorDetails({ message: err.response?.data?.error || "An unexpected error occurred while logging the inspection." }); 
+    }
   };
 
   if (!activeProject) return <div style={{padding: '40px', textAlign: 'center'}}>Please select an Active Project in Project Management first.</div>;
@@ -68,14 +92,21 @@ const InspectionEntry = () => {
       <h2>Asset & Inspection Management</h2>
       <p style={{color: 'var(--text-secondary)'}}>Managing assets for Project: <strong>{activeProject.name}</strong></p>
 
+      {errorDetails.message && (
+        <div style={{ marginTop: '15px', padding: '10px', backgroundColor: 'var(--status-danger)', color: 'white', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircle size={16} />
+            <span>{errorDetails.message}</span>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
         {/* Assets Panel */}
         <div className="card">
           <h4><Database size={18} style={{marginRight: '8px'}} /> Project Assets</h4>
           <form onSubmit={handleCreateAsset} style={{ display: 'flex', gap: '10px', marginTop: '15px', marginBottom: '20px' }}>
-            <input type="number" placeholder="Start km" style={{width: '80px'}} onChange={e => setAssetForm({...assetForm, location_start_km: e.target.value})} />
-            <input type="number" placeholder="End km" style={{width: '80px'}} onChange={e => setAssetForm({...assetForm, location_end_km: e.target.value})} />
-            <input type="number" placeholder="Install Year" style={{width: '100px'}} onChange={e => setAssetForm({...assetForm, install_year: e.target.value})} />
+            <input type="number" step="0.1" placeholder="Start km" style={{width: '80px'}} value={assetForm.location_start_km} onChange={e => setAssetForm({...assetForm, location_start_km: e.target.value})} />
+            <input type="number" step="0.1" placeholder="End km" style={{width: '80px'}} value={assetForm.location_end_km} onChange={e => setAssetForm({...assetForm, location_end_km: e.target.value})} />
+            <input type="number" placeholder="Install Year" style={{width: '100px'}} value={assetForm.install_year} onChange={e => setAssetForm({...assetForm, install_year: e.target.value})} />
             <button type="submit" className="btn btn-primary"><Plus size={16}/></button>
           </form>
 
