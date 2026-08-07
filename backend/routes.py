@@ -399,3 +399,28 @@ def seed_db():
         db.session.rollback()
         logger.exception(f"Error seeding DB: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+@api.route('/admin/rebuild_db', methods=['POST'])
+def rebuild_db():
+    try:
+        from models import db
+        db.drop_all()
+        db.create_all()
+        
+        from models import Component, Material, CountryProfile
+        if not CountryProfile.query.first():
+            db.session.add(CountryProfile(country_name="Default", currency="USD"))
+        if not Component.query.first():
+            db.session.add_all([
+                Component(id=1, name="Rails", description="Main rail tracks"),
+                Component(id=2, name="Sleepers", description="Track sleepers")
+            ])
+        if not Material.query.first():
+            db.session.add(Material(id=1, name="Standard Steel", component_id=1, expected_life=50, initial_cost=1000))
+
+        db.session.commit()
+        return jsonify({"success": True, "message": "Database completely rebuilt and seeded!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        logger.exception(f"Error rebuilding DB: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
