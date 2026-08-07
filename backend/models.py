@@ -33,7 +33,7 @@ class CountryProfile(db.Model):
 class Project(db.Model):
     __tablename__ = 'projects'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
+    name = db.Column(db.String(255), nullable=False, unique=True)
     country_id = db.Column(db.Integer, db.ForeignKey('country_profiles.id'))
     track_length_km = db.Column(db.Float)
     railway_type = db.Column(db.String(100))

@@ -13,17 +13,81 @@ def generic_get_all(model):
 @api.route('/users', methods=['GET'])
 def get_users(): return generic_get_all(User)
 
+import logging
+from sqlalchemy.exc import IntegrityError, OperationalError
+from validators import validate_project_payload
+
+# Configure basic logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 # --- Projects ---
 @api.route('/projects', methods=['GET'])
 def get_projects(): return generic_get_all(Project)
 
 @api.route('/projects', methods=['POST'])
 def create_project():
-    data = request.json
-    p = Project(**{k: v for k, v in data.items() if hasattr(Project, k)})
-    db.session.add(p)
-    db.session.commit()
-    return jsonify({"id": p.id}), 201
+    try:
+        data = request.json
+        logger.info(f"Endpoint /api/projects hit. Action: Create Project. Payload: {data}")
+        
+        # 1. Validation Layer
+        is_valid, err_msg, err_field = validate_project_payload(data)
+        if not is_valid:
+            logger.warning(f"Validation Error: {err_msg} on field {err_field}")
+            return jsonify({
+                "success": False,
+                "error": err_msg,
+                "field": err_field,
+                "status": 400
+            }), 400
+
+        # 2. Database Write Operation with Transaction Safety
+        p = Project(**{k: v for k, v in data.items() if hasattr(Project, k)})
+        db.session.add(p)
+        db.session.commit()
+        
+        logger.info(f"Project created successfully with ID: {p.id}")
+        return jsonify({
+            "success": True,
+            "message": "Project created successfully.",
+            "project_id": p.id
+        }), 201
+
+    except IntegrityError as e:
+        db.session.rollback()
+        logger.error(f"Database IntegrityError: {str(e)}")
+        # Check if it's a unique constraint violation on the name
+        if 'UNIQUE constraint failed: projects.name' in str(e) or 'duplicate key' in str(e).lower():
+            return jsonify({
+                "success": False,
+                "error": "Project name already exists.",
+                "field": "name",
+                "status": 409
+            }), 409
+        return jsonify({
+            "success": False,
+            "error": "Database integrity constraint violated.",
+            "status": 400
+        }), 400
+
+    except OperationalError as e:
+        db.session.rollback()
+        logger.error(f"Database OperationalError: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "Database connection or operational failure.",
+            "status": 500
+        }), 500
+
+    except Exception as e:
+        db.session.rollback()
+        logger.exception(f"Unexpected Exception during Create Project: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": "An unexpected server error occurred.",
+            "status": 500
+        }), 500
 
 # --- Assets ---
 @api.route('/assets', methods=['GET'])
