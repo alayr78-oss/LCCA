@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Report — LCCA Studio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .table-box table th { text-align: center; border: 1px solid var(--border); padding: 0.75rem 1.25rem; font-size: 0.7rem; }
+        .table-box table td { text-align: center; border: 1px solid var(--border); padding: 1rem; }
+        .highlight-lcc { background: #111827; font-weight: 800; border-left: 2px solid var(--border) !important; }
+        .sub-header { background: #0B1120; font-size: 0.65rem; color: #9ca3af; font-weight: 700; }
+        .val-a { color: var(--gold); font-weight: 700; }
+        .val-b { color: var(--maroon); font-weight: 700; }
+        .metric-card { background: var(--sidebar); border: 1px solid var(--border); padding: 1.5rem; border-radius: var(--radius); text-align: center; }
+        .metric-card h4 { font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .metric-card .val { font-size: 2rem; font-weight: 800; color: #f3f4f6; }
+        .sidebar.collapsed .sidebar-heading { display: none; }
+        .charts-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 2rem; margin-top: 3rem; }
+        @media (max-width: 768px) {
+            .charts-container { grid-template-columns: 1fr; gap: 2rem; }
+            .charts-container .chart-box { padding: 1.5rem; }
+            .charts-container .card-title { font-size: 1rem; text-align: left; justify-content: flex-start; }
+            .charts-container canvas { height: 250px !important; }
+            
+            .table-box table, .table-box thead, .table-box tbody, .table-box th, .table-box td, .table-box tr { display: block; }
+            .table-box thead { display: none; }
+            .table-box tr { margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 8px; background: #0F172A; }
+            .table-box td { 
+                border: none; border-bottom: 1px solid var(--border); 
+                position: relative; padding: 1rem 1rem 1rem 50% !important; 
+                text-align: right !important; font-size: 0.85rem !important; 
+            }
+            .table-box td:before { 
+                position: absolute; top: 1rem; left: 1rem; width: 45%; 
+                text-align: left; font-weight: 700; color: #9ca3af; 
+                content: attr(data-label); 
+            }
+            .table-box td:last-child { border-bottom: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <div class="logo">
+            <i class="fa-solid fa-train-subway" style="color: var(--gold);"></i>
+            <span style="font-size: 0.95rem;">RAILWAY LCCA <span style="color: var(--gold);">CALCULATOR</span></span>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem; padding-top: 1rem;">
+            <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); margin-left: 1.5rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: 0.05em;" class="sidebar-heading">Navigation</p>
+
+            <a href="/" class="sidebar-link">
+                <i class="fa-solid fa-house"></i> 
+                <span style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    <strong style="color: white; font-weight: 700; font-size: 1rem;">Project Overview</strong>
+                    <small style="font-size: 0.75rem; color: var(--text-light); font-weight: 500;">Dashboard & Project Info</small>
+                </span>
+            </a>
+            
+            <a href="/configure" class="sidebar-link">
+                <i class="fa-solid fa-calculator"></i> 
+                <span style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    <strong style="color: white; font-weight: 700; font-size: 1rem;">Analysis Engine</strong>
+                    <small style="font-size: 0.75rem; color: var(--text-light); font-weight: 500;">Configure LCCA Parameters</small>
+                </span>
+            </a>
+
+            <a href="#" class="sidebar-link active">
+                <i class="fa-solid fa-file-invoice-dollar"></i> 
+                <span style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    <strong style="color: white; font-weight: 700; font-size: 1rem;">Analysis Report</strong>
+                    <small style="font-size: 0.75rem; color: rgba(255,255,255,0.7); font-weight: 500;">Current Analysis Results</small>
+                </span>
+            </a>
+
+            <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); margin-left: 1.5rem; margin-bottom: 0.5rem; margin-top: 1.5rem; font-weight: 700; letter-spacing: 0.05em;" class="sidebar-heading">Settings</p>
+
+            <a href="#" class="sidebar-link">
+                <i class="fa-solid fa-sliders"></i> 
+                <span style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    <strong style="color: white; font-weight: 700; font-size: 1rem;">System Defaults</strong>
+                    <small style="font-size: 0.75rem; color: var(--text-light); font-weight: 500;">Global Configuration</small>
+                </span>
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            <p style="font-weight: 700; color: white; margin-bottom: 0.25rem;">Analysis Parameters</p>
+            Scenario: {{ analysis.params.scenario_id.upper() }} <br>
+            Methodology: {{ analysis.params.model_mode.capitalize() }}<br>
+            Discount rate: {{ "%.2f"|format(analysis.params.discount_rate * 100) }}% | Tracks: {{ analysis.params.number_of_tracks }}
+        </div>
+    </nav>
+
+    <main class="main">
+        <header>
+            <a href="/configure" style="text-decoration: none; color: var(--text-light); font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <i class="fa-solid fa-arrow-left-long"></i> BACK TO CONFIGURATION
+            </a>
+            <h1 style="font-size: 1.5rem; color: var(--gold);">Karachi Circular Railway (KCR) Permanent Way Material Optimization: LCCA Comparative Analysis.</h1>
+            <p>Life Cycle Cost Analysis of Permanent Way Components: <strong>{{ analysis.opt_a_name }} vs {{ analysis.opt_b_name }}</strong></p>
+        </header>
+
+        <!-- Charts -->
+        <div class="charts-container">
+            <div class="chart-box">
+                <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> Total LCC</h3>
+                <div style="height: 300px;"><canvas id="lccChart"></canvas></div>
+            </div>
+            <div class="chart-box">
+                <h3 class="card-title"><i class="fa-solid fa-chart-column"></i> True EAC</h3>
+                <div style="height: 300px;"><canvas id="eacChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Analytical Table -->
+        <div class="table-box" style="margin-top: 3rem;">
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 1rem;"><i class="fa-solid fa-calculator"></i> Step-by-Step Financial Analysis (Rs)</h3>
+                <span style="font-size: 0.7rem; color: var(--text-light);">Formula Verification: LCC = IC + NPV Maintenance + Discounted Replacements</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="background: #1a1d23; width: 100px;">Horizon</th>
+                        <th colspan="5" style="color: var(--gold); background: var(--gold-soft); border-bottom: 2px solid var(--gold);">{{ analysis.opt_a_name.upper() }} BREAKDOWN</th>
+                        <th colspan="5" style="color: #60a5fa; background: rgba(96, 165, 250, 0.1); border-bottom: 2px solid #60a5fa;">{{ analysis.opt_b_name.upper() }} BREAKDOWN</th>
+                        <th rowspan="2" style="background: var(--card);">Net Saving</th>
+                    </tr>
+                    <tr class="sub-header">
+                        <th>Initial (IC)</th>
+                        <th>NPV Maint.</th>
+                        <th>Replacement</th>
+                        <th class="highlight-lcc">Total LCC</th>
+                        <th>EAC</th>
+                        <th>Initial (IC)</th>
+                        <th>NPV Maint.</th>
+                        <th>Replacement</th>
+                        <th class="highlight-lcc">Total LCC</th>
+                        <th>EAC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_rows %}
+                    <tr>
+                        <td data-label="Horizon" style="font-weight: 800; background: #0B1120; text-align: center !important; padding-left: 1rem !important;">{{ row.years }} Y</td>
+                        <td data-label="{{ analysis.opt_a_name }} IC">{{ row.a_ic | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_a_name }} NPV Maint." style="color: var(--gold);">{{ row.a_npv | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_a_name }} Replacement" style="color: var(--gold);">{{ row.a_repl | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_a_name }} Total LCC" class="highlight-lcc" style="color: var(--gold); background: #0B1120;">{{ (row.a_lcc) | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_a_name }} EAC" style="color: var(--gold); font-weight: 600;">{{ (row.a_eac) | pk_money }} Rs</td>
+                        
+                        <td data-label="{{ analysis.opt_b_name }} IC">{{ row.b_ic | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_b_name }} NPV Maint." style="color: #60a5fa;">{{ row.b_npv | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_b_name }} Replacement" style="color: #60a5fa;">{{ row.b_repl | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_b_name }} Total LCC" class="highlight-lcc" style="color: #60a5fa; background: #0B1120;">{{ (row.b_lcc) | pk_money }} Rs</td>
+                        <td data-label="{{ analysis.opt_b_name }} EAC" style="color: #60a5fa; font-weight: 600;">{{ (row.b_eac) | pk_money }} Rs</td>
+                        
+                        <td data-label="Net Saving" style="font-weight: 800; background: rgba(212, 175, 55, 0.05); color: var(--gold);">{{ ((row.b_lcc - row.a_lcc) | abs) | pk_money }} Rs</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- LCCA Calculation Outputs -->
+        {% set last_row = table_rows[-1] %}
+        <div class="stats" style="margin-top: 2rem;">
+            <div class="metric-card">
+                <h4>Initial Cost Difference</h4>
+                <div class="val" style="color: #60a5fa;">{{ (last_row.b_ic - last_row.a_ic) | abs | pk_money }} Rs</div>
+                <p style="font-size:0.75rem; color:var(--text-light); margin-top:0.5rem;">Delta between {{ analysis.opt_a_name }} & {{ analysis.opt_b_name }}</p>
+            </div>
+            <div class="metric-card">
+                <h4>Maintenance NPV Difference</h4>
+                <div class="val" style="color: var(--gold);">{{ (last_row.a_npv - last_row.b_npv) | abs | pk_money }} Rs</div>
+                <p style="font-size:0.75rem; color:var(--text-light); margin-top:0.5rem;">Over {{ last_row.years }}-Year Horizon</p>
+            </div>
+            <div class="metric-card">
+                <h4>EAC Annual Savings</h4>
+                <div class="val" style="color: #f59e0b;">{{ (last_row.a_eac - last_row.b_eac) | abs | pk_money }} Rs</div>
+                <p style="font-size:0.75rem; color:var(--text-light); margin-top:0.5rem;">Equivalent Annual Cost Difference</p>
+            </div>
+        </div>
+
+        <footer style="margin-top: 5rem; text-align: center; color: #94a3b8; font-size: 0.85rem;">
+            &reg; Railway LCCA Calculator &bull; Generated for KCR Track Rehabilitation
+        </footer>
+    </main>
+
+    <script>
+        const chartLcc = JSON.parse('{{ chart_lcc|safe }}');
+        const cfData = JSON.parse('{{ cash_flow|safe }}');
+        
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        Chart.defaults.color = "#64748b";
+
+        function pkMoneyJS(value) {
+            if (value === null || value === undefined) return "0";
+            let val = parseFloat(value);
+            if (val === 0) return "0";
+            let sign = val < 0 ? "-" : "";
+            val = Math.abs(val);
+            if (val >= 10000000) {
+                return sign + (val / 10000000).toFixed(2) + " Cr PKR";
+            } else if (val >= 100000) {
+                return sign + (val / 100000).toFixed(2) + " L PKR";
+            } else {
+                return sign + val.toLocaleString('en-IN') + " PKR";
+            }
+        }
+
+        const tooltipPlugin = {
+            callbacks: {
+                label: function(context) {
+                    return context.dataset.label + ': ' + pkMoneyJS(context.raw);
+                }
+            }
+        };
+
+        new Chart(document.getElementById('lccChart'), {
+            type: 'bar',
+            data: {
+                labels: chartLcc.labels,
+                datasets: [
+                    { label: '{{ analysis.opt_a_name }} LCC', data: chartLcc.a, backgroundColor: '#D4AF37', borderRadius: 4 },
+                    { label: '{{ analysis.opt_b_name }} LCC', data: chartLcc.b, backgroundColor: '#7F1D1D', borderRadius: 4 }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                scales: { 
+                    y: { beginAtZero: true, title: { display: true, text: 'Total LCC (Rs)' }, ticks: { callback: pkMoneyJS } },
+                    x: { title: { display: true, text: 'Analysis Horizons' } }
+                },
+                plugins: { tooltip: tooltipPlugin }
+            }
+        });
+
+        new Chart(document.getElementById('eacChart'), {
+            type: 'bar',
+            data: {
+                labels: chartLcc.labels,
+                datasets: [
+                    { label: '{{ analysis.opt_a_name }} EAC', data: chartLcc.eac_a, backgroundColor: '#D4AF37', borderRadius: 4 },
+                    { label: '{{ analysis.opt_b_name }} EAC', data: chartLcc.eac_b, backgroundColor: '#7F1D1D', borderRadius: 4 }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                scales: { 
+                    y: { beginAtZero: true, title: { display: true, text: 'EAC (Rs / Year)' }, ticks: { callback: pkMoneyJS } }
+                },
+                plugins: { tooltip: tooltipPlugin }
+            }
+        });
+
+
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        }
+
+        // Initialize sidebar state
+        (function() {
+            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                document.getElementById('sidebar').classList.add('collapsed');
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Railway LCCA Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        :root {
+            --slate: #0F172A;
+            --slate-light: #1E293B;
+            --maroon: #7F1D1D;
+            --maroon-bright: #B91C1C;
+            --gold: #D4AF37;
+            --gold-muted: #B45309;
+            --accent: #F59E0B; /* Gold/Amber Accent */
+            --text-gray: #94A3B8;
+            --sidebar-w: 350px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--slate);
+            color: #F8FAFC;
+            font-family: 'Inter', 'Outfit', sans-serif;
+            overflow-y: auto; /* Allow scrolling */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header */
+        .top-header {
+            background: #0B1120;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            z-index: 100;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 2rem; }
+        .logo-stack { display: flex; align-items: center; gap: 1rem; }
+        .logo-stack img { height: 60px; filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.2)); }
+        .header-info { border-left: 2px solid var(--maroon); padding-left: 1.5rem; }
+        .header-info h4 { font-size: 0.9rem; letter-spacing: 0.1em; color: var(--gold); font-weight: 800; }
+        .header-info p { font-size: 0.7rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; }
+
+        .app-brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: white; }
+        .app-brand i { font-size: 1.8rem; color: var(--accent); }
+        .app-brand span { font-weight: 900; letter-spacing: -0.02em; font-size: 1.5rem; }
+        .app-brand span b { color: var(--accent); }
+
+        /* Main Layout */
+        .dashboard-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column; /* Vertical alignment requested */
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('/static/bg.png');
+            background-size: cover;
+            background-attachment: fixed;
+            padding: 4rem 2rem;
+            gap: 4rem;
+            align-items: center;
+            scroll-behavior: smooth;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .dash-section {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 24px;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            transition: 0.4s;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .dash-section:nth-child(even) {
+            animation-delay: 1s;
+        }
+
+        .dash-section:nth-child(3) {
+            animation-delay: 2s;
+        }
+
+        .dash-section:hover {
+            background: rgba(30, 41, 59, 0.7);
+            border-color: var(--gold);
+            transform: translateY(-5px) scale(1.01);
+            animation-play-state: paused; /* Stop floating on hover for better interaction */
+        }
+
+        .dash-section h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 2rem;
+            line-height: 1.2;
+            color: white;
+            text-align: center;
+        }
+
+        .dash-section h2 span { color: var(--accent); }
+
+        .content-scroll {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Hero / Identity Section */
+        .hero-section {
+            min-height: 60vh;
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            animation: float 8s ease-in-out infinite; /* Floating hero too */
+        }
+
+        .hero-section h1 {
+            font-size: clamp(3.5rem, 8vw, 6rem);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 2.5rem;
+            letter-spacing: -0.04em;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-section p {
+            font-size: 1.4rem;
+            color: var(--text-gray);
+            margin-bottom: 3.5rem;
+            max-width: 700px;
+            line-height: 1.6;
+        }
+
+        /* Cards and Items */
+        .info-card {
+            background: rgba(15, 23, 42, 0.4);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255,255,255,0.03);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            background: rgba(127, 29, 29, 0.1);
+            border-color: var(--gold);
+            transform: translateX(10px);
+        }
+
+        .info-card i { color: var(--accent); font-size: 1.5rem; margin-bottom: 1rem; }
+        .info-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .info-card p { font-size: 0.9rem; color: var(--text-gray); line-height: 1.6; }
+
+        .team-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            gap: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.02);
+            transition: 0.3s;
+        }
+
+        .team-item:hover {
+            background: rgba(212, 175, 55, 0.05);
+            border-color: var(--gold);
+        }
+
+        .team-item strong { font-size: 1.1rem; color: white; }
+        .team-item span { font-size: 0.8rem; color: var(--accent); font-weight: 700; }
+
+        .cta-btn {
+            background: linear-gradient(135deg, var(--maroon), var(--maroon-bright));
+            color: white;
+            padding: 1.25rem 3rem;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .cta-btn:hover { 
+            background: linear-gradient(135deg, var(--gold-muted), var(--gold));
+            transform: translateY(-3px) scale(1.05); 
+            color: var(--slate);
+            box-shadow: 0 15px 30px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        @media (max-width: 768px) {
+            body { overflow-y: auto; height: auto; }
+            .dashboard-container { flex-direction: column; height: auto; overflow: visible; }
+            .dash-section, .hero-section { min-width: 100%; max-width: 100%; height: auto; }
+            .top-header { flex-direction: column; gap: 1rem; text-align: center; }
+            .header-info { border: none; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <header class="top-header">
+
+        <a href="/" class="app-brand">
+            <i class="fa-solid fa-train-subway"></i>
+            <span style="font-size: 1.2rem;">RAILWAY LCCA <b>CALCULATOR</b></span>
+        </a>
+        <div style="display: flex; gap: 1rem;">
+            <a href="/configure" class="cta-btn" style="padding: 0.75rem 1.5rem; font-size: 0.9rem;">Analysis Engine</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <!-- Section 1: Hero Identity -->
+        <section class="dash-section hero-section animate__animated animate__fadeInLeft">
+            <h1>Railway LCCA <span>Calculator</span></h1>
+            <p>Integrated Life Cycle Cost Analysis & Infrastructure Optimization Engine. Designed for precision rail maintenance and long-term material replacement evaluation.</p>
+            <div style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center; width: 100%;">
+                <a href="/configure" class="cta-btn" style="width: 100%; max-width: 350px; justify-content: center;">Execute Analysis <i class="fa-solid fa-microchip"></i></a>
+                <div style="background: rgba(255,255,255,0.05); padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 350px;">
+                    <span style="font-size: 0.7rem; color: var(--accent); font-weight: 700; text-transform: uppercase;">Service Period</span><br>
+                    <span style="font-size: 1.2rem; font-weight: 900;">50-YEAR HORIZON</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Objectives & Mission -->
+        <section class="dash-section animate__animated animate__fadeInUp">
+            <h2><span>01.</span> Project Mission</h2>
+            <div class="content-scroll">
+                <div class="info-card">
+                    <i class="fa-solid fa-bridge-circle-check"></i>
+                    <h3>Data-Driven Optimization</h3>
+                    <p>Railway LCCA Calculator bridges the gap between structural rail engineering and economic sustainability, optimizing material selection for systems like the Karachi Circular Railway (KCR).</p>
+                </div>
+                <div class="info-card">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <h3>Automated LCCA Protocols</h3>
+                    <p>Replacing manual engineering spreadsheets with a real-time NPV (Net Present Value) and EAC (Equivalent Annual Cost) assessment engine.</p>
+                </div>
+                <div class="info-card">
+                    <i class="fa-solid fa-coins"></i>
+                    <h3>Maintenance Cost Assessment</h3>
+                    <p>Projecting long-term maintenance cycles and material replacements to ensure the railway system remains economically feasible and structurally reliable over its operational lifespan.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Engineering Framework -->
+        <section class="dash-section animate__animated animate__fadeInUp animate__delay-1s">
+            <h2><span>02.</span> Technical Framework</h2>
+            <div class="content-scroll">
+                <div class="info-card">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <h3>Sleeper Replacement Analysis</h3>
+                    <p>Comparing the Life Cycle Costs of PSC and Hardwood Timber sleepers from their initial cost, annual maintenance rate, service life and replacement cost over the chosen analysis periods.</p>
+                </div>
+                <div class="info-card">
+                    <i class="fa-solid fa-link-slash"></i>
+                    <h3>Joint & Welding Maintenance</h3>
+                    <p>Comparing thermit welded rail with fishplate jointed track from joint quantities, unit costs, maintenance rates, service lives and replacement costs over the chosen analysis periods.</p>
+                </div>
+                <div class="info-card">
+                    <i class="fa-solid fa-mountain-sun"></i>
+                    <h3>Trackbed Rehabilitation</h3>
+                    <p>Comparing a traditional ballast bed with slab track from ballast volume and slab length, unit costs, maintenance rates, service lives and replacement costs over the chosen analysis periods.</p>
+                </div>
+            </div>
+        </section>
+
+
+    </main>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, easing: 'ease-out-cubic', once: true });
+    </script>
+</body>
+</html>
+
+

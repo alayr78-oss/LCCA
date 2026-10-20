@@ -1,0 +1,77 @@
+/* style.css — Railway LCCA */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { font-family: "Segoe UI", system-ui, sans-serif; background: #F0F2F5; color: #1a1a2e; line-height: 1.6; }
+
+/* ── Header ── */
+header { background: #1a237e; color: #fff; padding: 1.5rem 0; }
+.header-inner { max-width: 960px; margin: auto; padding: 0 1.5rem; }
+header h1 { font-size: 1.7rem; font-weight: 600; }
+.subtitle { font-size: 0.9rem; opacity: 0.8; margin-top: 0.25rem; }
+
+/* ── Layout ── */
+.container { max-width: 960px; margin: 2rem auto; padding: 0 1.5rem; }
+
+/* ── Cards ── */
+.card { background: #fff; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.card h2 { font-size: 1.1rem; font-weight: 600; color: #1a237e; margin-bottom: 1rem;
+           padding-bottom: 0.5rem; border-bottom: 2px solid #e8eaf6; }
+.card.info { background: #f3f4fd; }
+
+/* ── Form ── */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.field label { display: block; font-size: 0.83rem; color: #555; margin-bottom: 0.3rem; }
+.field input { width: 100%; padding: 0.5rem 0.7rem; border: 1px solid #c5cae9;
+               border-radius: 6px; font-size: 0.95rem; transition: border-color .2s; }
+.field input:focus { outline: none; border-color: #3f51b5; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.5rem; font-size: 0.87rem; }
+.info-grid div { display: flex; gap: 0.5rem; }
+.lbl { color: #666; min-width: 170px; }
+
+/* ── Buttons ── */
+.btn-row { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
+.btn-primary { background: #1a237e; color: #fff; border: none; padding: 0.7rem 2rem;
+               border-radius: 7px; font-size: 1rem; cursor: pointer; transition: background .2s; }
+.btn-primary:hover { background: #283593; }
+.btn-secondary { background: #fff; color: #1a237e; border: 2px solid #1a237e; padding: 0.65rem 1.8rem;
+                 border-radius: 7px; font-size: 1rem; text-decoration: none; cursor: pointer; transition: .2s; }
+.btn-secondary:hover { background: #e8eaf6; }
+
+/* ── Alert ── */
+.alert { padding: 1rem 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; }
+.alert.error { background: #ffebee; border: 1px solid #ef9a9a; color: #b71c1c; }
+.alert ul { margin-top: 0.4rem; padding-left: 1.2rem; }
+
+/* ── KPI cards ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.9rem; }
+.kpi { background: #e8eaf6; border-radius: 8px; padding: 0.9rem 1rem; text-align: center; }
+.kpi-val { display: block; font-size: 1.3rem; font-weight: 700; color: #1a237e; }
+.kpi-lbl { display: block; font-size: 0.75rem; color: #555; margin-top: 0.2rem; }
+
+/* ── Tables ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+.data-table th, .data-table td { padding: 0.55rem 0.75rem; text-align: right; border-bottom: 1px solid #e0e0e0; }
+.data-table th { background: #e8eaf6; color: #1a237e; font-weight: 600; }
+.data-table td:first-child, .data-table th:first-child { text-align: left; }
+.data-table .center { text-align: center; }
+.data-table .highlight { font-weight: 700; color: #1a237e; }
+.wood-hdr { background: #fff3e0 !important; color: #6d3b00 !important; }
+.conc-hdr { background: #e3f2fd !important; color: #0d47a1 !important; }
+.note { font-size: 0.8rem; color: #666; margin-top: 0.75rem; }
+
+/* ── Charts ── */
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.chart-grid figure { background: #fafafa; border-radius: 8px; overflow: hidden; }
+.chart-grid figure.wide { grid-column: 1 / -1; }
+.chart-grid figcaption { font-size: 0.85rem; font-weight: 600; color: #1a237e;
+                          padding: 0.6rem 1rem; background: #e8eaf6; }
+.chart-grid img { width: 100%; display: block; }
+
+/* ── Footer ── */
+footer { text-align: center; padding: 1.5rem; font-size: 0.82rem; color: #888; border-top: 1px solid #ddd; margin-top: 1rem; }
+
+@media (max-width: 600px) {
+  .chart-grid { grid-template-columns: 1fr; }
+  .chart-grid figure.wide { grid-column: auto; }
+}
