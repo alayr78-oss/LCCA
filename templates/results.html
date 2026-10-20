@@ -91,7 +91,8 @@
         <div class="sidebar-footer">
             <p style="font-weight: 700; color: white; margin-bottom: 0.25rem;">Analysis Parameters</p>
             Scenario: {{ analysis.params.scenario_id.upper() }} <br>
-            Methodology: {{ analysis.params.model_mode.capitalize() }}
+            Methodology: {{ analysis.params.model_mode.capitalize() }}<br>
+            Discount rate: {{ "%.2f"|format(analysis.params.discount_rate * 100) }}% | Tracks: {{ analysis.params.number_of_tracks }}
         </div>
     </nav>
 

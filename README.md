@@ -1,61 +1,63 @@
-# Railway LCCA — Life Cycle Cost Analysis Tool
+# Railway LCCA Calculator (Karachi Circular Railway)
 
-A premium Flask-based **Life Cycle Cost Analysis (LCCA)** engine designed for railway infrastructure evaluation. Originally developed for the **Karachi Circular Railway (KCR)** 44km track expansion, it now supports multiple infrastructure scenarios.
+Flask web tool that compares the life cycle cost (LCC) and equivalent annual cost (EAC) of two track options.
 
-## 🚀 Key Features
+| Scenario | Option A | Option B |
+|---|---|---|
+| 1 | Hardwood timber sleepers | Pre-stressed concrete sleepers |
+| 2 | Fishplate jointed track | Thermit welded track |
+| 3 | Ballast bed | Slab track |
 
-- **Multi-Scenario Support**: 
-  - **Scenario 1**: Concrete vs. Wooden Sleepers
-  - **Scenario 2**: Weld vs. Fish Plate Joints
-  - **Scenario 3**: Ballasted vs. Slab Track Systems
-- **Interactive Dashboard**: Premium dark-themed UI with an animated, toggleable sidebar.
-- **Dynamic LCCA Engine**: Supports both Legacy Scenario logic and Standard Analytical Engineering formulas.
-- **Visual Analytics**: Real-time charts including Economic Comparison (Bar) and Annual Maintenance Flow (Line).
-- **Financial Auditing**: Step-by-step breakdown of Initial Cost (IC), NPV Maintenance, and Replacement costs.
-- **Responsive Design**: Optimized for desktop and tablets with horizontal scrolling for large data tables.
+## Model
 
-## 📁 Project Structure
+For each option and analysis period n (r = discount rate, IC = initial cost, m = maintenance rate, rho = replacement rate):
 
-```bash
-railway_lcca/
-├── app.py               # Flask entry point & routing
-├── lcca_model.py        # Generic LCCA calculation engine
-├── requirements.txt     # Project dependencies
-├── static/
-│   └── style.css        # Premium UI design system
-└── templates/
-    ├── landing.html     # Welcome landing page
-    ├── index.html       # Scenario configuration form
-    └── results.html     # Financial audit & visualization
+```
+PV_maintenance = m * IC * (1 - (1 + r)^-n) / r
+PV_replacement = sum over replacement times t of  rho * IC / (1 + r)^t      (t = life, 2 x life, ...  < n)
+LCC            = IC + PV_maintenance + PV_replacement
+EAC            = LCC * r (1 + r)^n / ((1 + r)^n - 1)
 ```
 
-## 🛠️ Quick Start
+- A replacement that falls exactly at the end of the analysis period is not charged.
+- Maintenance strategy "reactive" multiplies maintenance by 1.2. The environmental factor multiplies maintenance of timber and ballast by the full factor and of all other options by 1.1 when the factor is above 1.
+- The sensitivity setting multiplies the discount rate by (1 + s), so +10 % turns 8 % into 8.8 %.
+- Costs are in rupees at constant prices. No user, environmental or residual value is included.
+
+## Defaults
+
+Route 44 km, 2 tracks, rail panel 12.5 m, discount rate 8 %, replacement 40 % of initial cost, periods 10, 25, 50 years.
+Maintenance rates: timber 8 %, PSC 3 %, fishplate 8 %, weld 3 %, ballast 5 %, slab 1.5 %.
+Service lives (years): timber 10, PSC 35, fishplate 10, weld 50, ballast 12.5, slab 100.
+
+## Run locally
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/alayr78-oss/LCCA.git
-cd LCCA/railway_lcca
-
-# 2. Setup Virtual Environment
 python -m venv venv
-venv\Scripts\activate  # Windows
-
-# 3. Install Dependencies
+source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-# 4. Run Development Server
-flask --app app run --debug
+flask --app app run               # open http://127.0.0.1:5000
 ```
 
-## 📈 Methodology
+## Verify
 
-The tool uses standard financial engineering formulas to calculate the Net Present Value (NPV) of repeating maintenance and capital replacement cycles:
+```bash
+python tests/test_lcca_model.py
+```
 
-| Factor | Formula |
-| :--- | :--- |
-| **NPV (Annuity)** | $A \times \frac{1 - (1+r)^{-n}}{r}$ |
-| **Replacement PV** | $\frac{RC}{(1+r)^t}$ |
-| **Total LCC** | $IC + \text{NPV}_{\text{maint}} + \text{NPV}_{\text{repl}}$ |
+`tests/live_baseline.json` holds outputs of the previously deployed version. The financial core reproduces all of them to within Rs 0.01.
 
----
-*Built for Karachi Circular Railway Project Analytics.*
+## Deploy on Render
+
+Build command `pip install -r requirements.txt`, start command `gunicorn app:app`.
+
+## Changes from the previously deployed version
+
+1. One rail panel length (12.5 m) for all quantities. The old sleeper scenario counted rails with 3.81 m panels, which made quantities about 3.3 times too high.
+2. New inputs: number of tracks, rail panel length, replacement rate and a service life for every component. Joint spacing is no longer a separate input.
+3. Sensitivity is relative (rate x 1.10 or x 0.90) instead of adding or subtracting 0.10.
+4. Discount rate 0 is handled. All inputs are validated and errors are shown on the form instead of a server error.
+5. Service lives for timber and PSC sleepers follow Table 4 of the paper (mid-points of the ranges).
+6. Ballast price default is Rs 105 per ft3 (Cantonment office rate).
+7. A replacement at the exact end of the analysis period is not charged.
+8. Landing page text describes only what the model calculates.
