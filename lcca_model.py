@@ -59,7 +59,7 @@ DEFAULTS: Dict = {
     "ballast_life": 12.5,
     "slab_ic_per_m": 20658,
     "slab_maint_rate": 0.015,
-    "slab_life": 100,
+    "slab_life": 80,
 }
 
 SCENARIOS = {
